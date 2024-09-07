@@ -1,8 +1,7 @@
 from flask import Flask, render_template, request, redirect, session, flash
 import sqlite3, random, smtplib
 from datetime import datetime, timedelta
-from werkzeug.security import generate_password_hash, check_password_hash
-from flask import session
+import bcrypt  # Import bcrypt for hashing
 import os
 
 app = Flask(__name__)
@@ -19,9 +18,11 @@ def get_db_connection():
 def register():
     if request.method == 'POST':
         username = request.form['username']
-        password = request.form['password']
+        password = request.form['password'].encode('utf-8')  # Encode to bytes for bcrypt
         email = request.form['email']
-        hashed_password = generate_password_hash(password, method='bcrypt')
+
+        # Hash password with bcrypt and gensalt
+        hashed_password = bcrypt.hashpw(password, bcrypt.gensalt())
 
         # Save user to database
         conn = get_db_connection()
@@ -41,7 +42,7 @@ def register():
 def login():
     if request.method == 'POST':
         username = request.form['username']
-        password = request.form['password']
+        password = request.form['password'].encode('utf-8')  # Encode password to bytes for bcrypt
 
         # Verify username and password
         conn = get_db_connection()
@@ -50,7 +51,7 @@ def login():
         user = c.fetchone()
         conn.close()
 
-        if user and check_password_hash(user['password'], password):
+        if user and bcrypt.checkpw(password, user['password']):
             # Generate OTP and send to user's email
             otp = random.randint(100000, 999999)
             otp_expiration = datetime.now() + timedelta(minutes=5)
