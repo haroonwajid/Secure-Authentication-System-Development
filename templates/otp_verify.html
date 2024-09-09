@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+
+{% block title %}Verify OTP - Secure Authentication System{% endblock %}
+
+{% block content %}
+<section class="form-container">
+    <h2>Verify OTP</h2>
+    
+    <form method="POST" action="/verify_otp">
+        <input type="text" placeholder="Enter OTP" name="otp" required>
+        <button type="submit">Verify OTP</button>
+    </form>
+</section>
+{% endblock %}

@@ -1,127 +1,78 @@
-from flask import Flask, render_template, request, redirect, session, flash
-import sqlite3, random, smtplib
-from datetime import datetime, timedelta
-import bcrypt  # Import bcrypt for hashing
-import os
+from flask import Flask, render_template, request, redirect, url_for
+from flask_sqlalchemy import SQLAlchemy
+from flask_bcrypt import Bcrypt
 
 app = Flask(__name__)
-app.secret_key = os.urandom(24)  # For secure sessions
+app.config['SECRET_KEY'] = 'your_secret_key'
+#users db to store the names and credeitnals in database
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'  
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Database Connection Helper
-def get_db_connection():
-    conn = sqlite3.connect('users.db')
-    conn.row_factory = sqlite3.Row
-    return conn
+db = SQLAlchemy(app)
+bcrypt = Bcrypt(app)          
 
-# User Registration Route
+# Define User model
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(150), nullable=False, unique=True)
+    email = db.Column(db.String(150), nullable=False, unique=True)
+    password = db.Column(db.String(200), nullable=False)
+
+# Create the database
+with app.app_context():
+    db.create_all()
+
+@app.route('/')
+def home():
+    return render_template('home.html')
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
         username = request.form['username']
-        password = request.form['password'].encode('utf-8')  # Encode to bytes for bcrypt
         email = request.form['email']
+        password = request.form['password']
 
-        # Hash password with bcrypt and gensalt
-        hashed_password = bcrypt.hashpw(password, bcrypt.gensalt())
+        # Hash the password
+        hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
 
-        # Save user to database
-        conn = get_db_connection()
-        c = conn.cursor()
-        c.execute('INSERT INTO users (username, password, email) VALUES (?, ?, ?)',
-                  (username, hashed_password, email))
-        conn.commit()
-        conn.close()
+        # Check if the user already exists
+        user_exists = User.query.filter_by(email=email).first()
+        if user_exists:
+            # Redirect to a page indicating the user is already registered
+            return render_template('register_failed.html', message="You are already registered, please login.")
 
-        flash('Registered successfully! Please log in.', 'success')
-        return redirect('/login')
+        # Create a new user and store in the database
+        new_user = User(username=username, email=email, password=hashed_password)
+        db.session.add(new_user)
+        db.session.commit()
+
+        # Redirect to the registration success page
+        return redirect(url_for('register_success'))
 
     return render_template('register.html')
 
-# User Login Route
+@app.route('/register_success')
+def register_success():
+    return render_template('register_success.html')
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         username = request.form['username']
-        password = request.form['password'].encode('utf-8')  # Encode password to bytes for bcrypt
+        password = request.form['password']
 
-        # Verify username and password
-        conn = get_db_connection()
-        c = conn.cursor()
-        c.execute('SELECT * FROM users WHERE username = ?', (username,))
-        user = c.fetchone()
-        conn.close()
+        # Find the user in the database
+        user = User.query.filter_by(username=username).first()
 
-        if user and bcrypt.checkpw(password, user['password']):
-            # Generate OTP and send to user's email
-            otp = random.randint(100000, 999999)
-            otp_expiration = datetime.now() + timedelta(minutes=5)
-
-            # Update OTP and expiration in the database
-            conn = get_db_connection()
-            c = conn.cursor()
-            c.execute('UPDATE users SET otp = ?, otp_expiration = ? WHERE id = ?',
-                      (otp, otp_expiration, user['id']))
-            conn.commit()
-            conn.close()
-
-            # Send OTP via email
-            send_otp(user['email'], otp)
-
-            session['user_id'] = user['id']
-            return redirect('/otp')
-
+        # Check if the user exists and if the password is correct
+        if user and bcrypt.check_password_hash(user.password, password):
+            return redirect(url_for('home'))
         else:
-            flash('Invalid credentials, please try again.', 'danger')
+            # Render login_failed.html if the login fails
+            return render_template('login_failed.html', message="Login failed! Please check your credentials and try again.")
 
     return render_template('login.html')
-
-# OTP Verification Route
-@app.route('/otp', methods=['GET', 'POST'])
-def otp():
-    if 'user_id' not in session:
-        return redirect('/login')
-
-    if request.method == 'POST':
-        otp_input = request.form['otp']
-
-        # Fetch OTP and expiration from the database
-        conn = get_db_connection()
-        c = conn.cursor()
-        c.execute('SELECT * FROM users WHERE id = ?', (session['user_id'],))
-        user = c.fetchone()
-        conn.close()
-
-        if user and user['otp'] == otp_input and datetime.now() < datetime.fromisoformat(user['otp_expiration']):
-            session['logged_in'] = True
-            flash('Logged in successfully!', 'success')
-            return redirect('/dashboard')
-        else:
-            flash('Invalid OTP or OTP expired.', 'danger')
-
-    return render_template('otp.html')
-
-# Dashboard (Protected Route)
-@app.route('/dashboard')
-def dashboard():
-    if 'logged_in' not in session:
-        return redirect('/login')
-    return 'Welcome to the secure dashboard!'
-
-# Logout Route
-@app.route('/logout')
-def logout():
-    session.clear()
-    flash('Logged out successfully.', 'success')
-    return redirect('/login')
-
-# Helper function to send OTP email
-def send_otp(email, otp):
-    # Setup your email server configuration here
-    server = smtplib.SMTP_SSL('smtp.your_email_provider.com', 465)
-    server.login('your_email@example.com', 'password')
-    message = f'Subject: Your OTP Code\n\nYour OTP is {otp}. It will expire in 5 minutes.'
-    server.sendmail('your_email@example.com', email, message)
-    server.quit()
 
 if __name__ == '__main__':
     app.run(debug=True)
