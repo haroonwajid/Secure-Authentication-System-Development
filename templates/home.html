@@ -1,35 +1,22 @@
-{% extends "layout.html" %}
-
-{% block title %}Home - Secure Authentication System{% endblock %}
-
-{% block content %}
-   <section class="hero" style="display: flex; justify-content: space-between; align-items: center; height: 100vh; background-color: #1E3A8A; color: #fff;"> 
-    <div class="text" style="flex: 1; text-align: center;">
-
-        <h1 style="font-family: 'Montserrat', sans-serif; font-size: 48px;">Experience the Future of Secure Authentication</h1>
-        <p style="font-size: 18px; margin: 20px 0;">Two-factor authentication for maximum security.</p>
-        <button class="cta-button" style="background-color: #10B981; color: #fff; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.3s ease;">Start Your Secure Login Now</button>
-        
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Page</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to the Home Page</h1>
+        <p>This is a basic home page template.</p>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('home') }}">Home</a></li>
+                <li><a href="{{ url_for('login') }}">Login</a></li>
+                <li><a href="{{ url_for('register') }}">Register</a></li>
+            </ul>
+        </nav>
     </div>
-    <div style="flex: 1; text-align: right;">
-        <img src="{{ url_for('static', filename='auth.png') }}" alt="Secure Authentication Logo" style="max-width: 300px; height: auto;">
-    </div>
-</section>
-
-<section id="features" class="features" style="display: flex; justify-content: center; gap: 20px; padding: 50px; background-color: #fff;">
-    <div class="card" style="flex: 1; max-width: 300px; padding: 20px; background-color: #F3F4F6; border-radius: 10px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);">
-        <h3>Login Security</h3>
-        <p>Robust login system to prevent unauthorized access.</p>
-    </div>
-    <div class="card" style="flex: 1; max-width: 300px; padding: 20px; background-color: #F3F4F6; border-radius: 10px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);">
-        <h3>OTP Verification</h3>
-        <p>Two-factor authentication using OTP to add extra security.</p>
-    </div>
-    <div class="card" style="flex: 1; max-width: 300px; padding: 20px; background-color: #F3F4F6; border-radius: 10px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);">
-        <h3>Session Management</h3>
-        <p>Advanced session tracking and management for secure access.</p>
-    </div>
-</section>
-
-
-{% endblock %}
+</body>
+</html>

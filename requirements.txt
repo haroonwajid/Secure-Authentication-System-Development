@@ -1,0 +1,10 @@
+Flask==2.1.0
+Flask-SQLAlchemy==2.5.1
+Flask-Bcrypt==1.0.1
+PyJWT==2.3.0
+Flask-Limiter==2.4.0
+Flask-WTF==0.15.1
+itsdangerous==2.0.1
+
+
+
