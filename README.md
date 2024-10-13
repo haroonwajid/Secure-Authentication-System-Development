@@ -21,7 +21,7 @@ This project implements a secure login system with two-factor authentication usi
 
 1. Clone the repository:
    ```
-   git clone https://github.com/your-username/secure-authentication-system.git
+   git clone https://github.com/haroonwajid/Secure-Authentication-System-Development.git
    cd secure-authentication-system
    ```
 
