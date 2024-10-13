@@ -22,7 +22,7 @@ This project implements a secure login system with two-factor authentication usi
 1. Clone the repository:
    ```
    git clone https://github.com/haroonwajid/Secure-Authentication-System-Development.git
-   cd secure-authentication-system
+   cd Secure-Authentication-System-Development
    ```
 
 2. Create a virtual environment:
