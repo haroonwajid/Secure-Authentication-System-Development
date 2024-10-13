@@ -83,3 +83,10 @@ button:hover {
 .btn:hover {
     background-color: #0056b3;
 }
+
+.auth-image {
+    display: block;
+    margin: 20px auto;
+    max-width: 100%;
+    height: auto;
+}

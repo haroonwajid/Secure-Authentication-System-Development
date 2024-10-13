@@ -10,6 +10,10 @@
     <div class="container">
         <h1>Welcome to your dashboard, {{ username }}!</h1>
         <p>You have successfully logged in.</p>
+        
+        <!-- Add the auth.png image -->
+        <img src="{{ url_for('static', filename='auth.png') }}" alt="Authentication Successful" class="auth-image">
+        
         <a href="{{ url_for('logout') }}" class="btn">Logout</a>
     </div>
 </body>
