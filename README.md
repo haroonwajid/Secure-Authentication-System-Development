@@ -81,9 +81,12 @@ This project implements a secure login system with two-factor authentication usi
 - CSRF protection is enabled for all forms
 - Email verification is required for new accounts
 
-## Contributing
+## Contributers
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+- Haroon Wajid
+- Maryam Noor
+- Taha Hassan
+- Waleed Noman
 
 ## License
 
