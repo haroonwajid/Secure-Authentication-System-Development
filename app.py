@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_limiter import Limiter
@@ -34,6 +34,11 @@ class LoginForm(FlaskForm):
 class OTPForm(FlaskForm):
     otp = StringField('OTP', validators=[DataRequired(), Length(min=6, max=6)])
     submit = SubmitField('Verify OTP')
+
+class RockPaperScissorsForm(FlaskForm):
+    rock = SubmitField('Rock')
+    paper = SubmitField('Paper')
+    scissors = SubmitField('Scissors')
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -208,6 +213,49 @@ def resend_otp():
 def dashboard(current_user):
     return render_template('dashboard.html', username=current_user.username)
 
+@app.route('/rock_paper_scissors', methods=['GET', 'POST'])
+@token_required
+def rock_paper_scissors(current_user):
+    if request.method == 'GET':
+        return render_template('rock_paper_scissors.html', username=current_user.username)
+    
+    current_app.logger.info(f"Received data: {request.get_data()}")
+    data = request.get_json()
+    current_app.logger.info(f"Parsed JSON: {data}")
+    
+    if not data or 'choice' not in data:
+        current_app.logger.error("Invalid request data")
+        return jsonify({'error': 'Invalid request data'}), 400
+    
+    user_choice = data['choice'].lower()
+    if user_choice not in ['rock', 'paper', 'scissors']:
+        current_app.logger.error(f"Invalid choice: {user_choice}")
+        return jsonify({'error': 'Invalid choice'}), 400
+    
+    computer_choice = random.choice(['rock', 'paper', 'scissors'])
+    
+    result = determine_winner(user_choice, computer_choice)
+    
+    response_data = {
+        'user_choice': user_choice,
+        'computer_choice': computer_choice,
+        'result': result
+    }
+    current_app.logger.info(f"Sending response: {response_data}")
+    return jsonify(response_data)
+
+def determine_winner(user_choice, computer_choice):
+    if user_choice == computer_choice:
+        return 'Tie'
+    elif (
+        (user_choice == 'rock' and computer_choice == 'scissors') or
+        (user_choice == 'paper' and computer_choice == 'rock') or
+        (user_choice == 'scissors' and computer_choice == 'paper')
+    ):
+        return 'You win!'
+    else:
+        return 'Computer wins!'
+
 @app.route('/logout')
 @token_required
 def logout(current_user):
@@ -215,6 +263,11 @@ def logout(current_user):
     session.pop('user_id', None)
     flash('You have been logged out.', 'success')
     return redirect(url_for('home'))
+
+@app.route('/snake_game')
+@token_required
+def snake_game(current_user):
+    return render_template('snake_game.html', username=current_user.username)
 
 # Print the current working directory and template folder path
 print("Current working directory:", os.getcwd())
